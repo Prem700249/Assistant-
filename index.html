@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reel Text Editor</title>
+<title>Reel Lyric Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&display=swap" rel="stylesheet">
 <style>
 body{margin:0;font-family:system-ui,sans-serif;background:#111;color:#eee;padding:12px}
@@ -13,21 +13,17 @@ h2{font-size:1.1rem;margin:0 0 8px}
 canvas{width:100%;height:100%;display:block}
 .box{background:#1e1e1e;border-radius:14px;padding:12px;margin-top:12px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #333;background:#222;color:#eee;margin:4px 0;font-size:1rem}
-input[type=color]{height:44px;padding:4px}
-input[type=range]{padding:0}
+textarea{min-height:120px;resize:vertical}
 button{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:1rem;font-weight:600;margin-top:6px}
 button.sec{background:#333}
-.row{display:flex;gap:8px}.row>*{flex:1}
+button.tap{background:#e10600;font-size:1.3rem;padding:20px;display:none}
 label{font-size:.85rem;color:#aaa;display:block;margin-top:6px}
-.ov{display:flex;justify-content:space-between;align-items:center;background:#262626;padding:8px 10px;border-radius:10px;margin-top:6px;font-size:.9rem}
-.ov span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:80%;font-weight:bold}
-.ov b{color:#f87171;cursor:pointer;padding:0 4px}
-#status{color:#aaa;font-size:.9rem;margin:8px 0 0}
+#status,#info{color:#aaa;font-size:.9rem;margin:8px 0 0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h2>🎬 Reel Text Editor</h2>
+  <h2>🎬 Reel Lyric Video</h2>
 
   <div id="stage"><canvas id="cv" width="720" height="1280"></canvas></div>
   <audio id="aud"></audio>
@@ -35,56 +31,45 @@ label{font-size:.85rem;color:#aaa;display:block;margin-top:6px}
   <div class="box">
     <label>1. Image (background)</label>
     <input type="file" id="fImg" accept="image/*">
-    <label>2. Song (video length = song length)</label>
+    <label>2. Song</label>
     <input type="file" id="fAud" accept="audio/*">
-    <label>3. Your own font, .ttf/.otf (optional)</label>
-    <input type="file" id="fFont" accept=".ttf,.otf,.woff,.woff2">
-    <p id="info" class="muted" style="color:#aaa;font-size:.85rem;margin:6px 0 0"></p>
+    <p id="info"></p>
   </div>
 
   <div class="box">
-    <h2>✍️ Add text overlay</h2>
-    <textarea id="oText" rows="2" placeholder="Text (Enter = new line)">रास्ते में</textarea>
-    <label>Text color</label>
-    <input type="color" id="oColor" value="#ff1a1a">
-    <label>Font size: <span id="sizeVal">110</span>px</label>
-    <input type="range" id="oSize" min="40" max="200" value="110">
-    <select id="oPos">
-      <option value="top">Top</option>
-      <option value="mid" selected>Middle</option>
-      <option value="bottom">Bottom</option>
-    </select>
-    <div class="row">
-      <input type="number" id="oStart" placeholder="Start (sec)" value="0" min="0" step="0.1">
-      <input type="number" id="oEnd" placeholder="End (sec, 0 = till end)" value="0" min="0" step="0.1">
-    </div>
-    <button onclick="addOv()">Add overlay</button>
-    <div id="ovList"></div>
+    <h2>📝 Lyrics (one line per row)</h2>
+    <textarea id="lyr" placeholder="Paste lyrics here, one line per row&#10;रास्ते में&#10;खो चुका"></textarea>
+    <label>Colors for lines, in order (comma separated)</label>
+    <input type="text" id="pal" value="#e10600,#ffffff,#ffd400">
+    <button class="sec" onclick="autoTime()">⏱ Auto-time evenly</button>
+    <button onclick="startSync()">🎯 Tap-sync with song</button>
+    <button class="tap" id="tapBtn" onclick="tap()">👆 TAP when the line starts</button>
   </div>
 
   <div class="box">
     <button class="sec" id="playBtn" onclick="togglePlay()">▶ Preview</button>
-    <button id="expBtn" onclick="exportVid()">⬇ Generate video</button>
+    <button onclick="exportVid()">⬇ Generate video</button>
     <p id="status">Upload an image and a song to start.</p>
   </div>
 </div>
 
 <script>
-const W = 720, H = 1280;
+const W = 720, H = 1280, MAXW = 640;
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const aud = document.getElementById('aud');
 const playBtn = document.getElementById('playBtn');
 const img = new Image();
 let imgReady = false;
-let overlays = [];
-let fontName = '"Yatra One", sans-serif';
+let lyr = [];                      // [{text, start}]
+let palette = ['#e10600', '#ffffff', '#ffd400'];
+let syncIdx = -1;
 let actx = null, dest = null;
+const fontName = '"Yatra One", sans-serif';
 
 const $ = id => document.getElementById(id);
 const st = m => $('status').textContent = m;
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ---------- file inputs ---------- */
+/* ---------- inputs ---------- */
 $('fImg').onchange = e => {
   const f = e.target.files[0]; if (!f) return;
   img.onload = () => { imgReady = true; st('Image loaded ✅'); };
@@ -98,83 +83,121 @@ $('fAud').onchange = e => {
     st('Song loaded ✅');
   };
 };
-$('fFont').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  try {
-    const ff = new FontFace('CustomFont', await f.arrayBuffer());
-    await ff.load();
-    document.fonts.add(ff);
-    fontName = '"CustomFont"';
-    st('Custom font loaded ✅');
-  } catch (err) { st('Font could not load. Try another file.'); }
-};
-$('oSize').oninput = () => $('sizeVal').textContent = $('oSize').value;
+$('lyr').addEventListener('input', parseLyrics);
+$('pal').addEventListener('input', () => {
+  palette = $('pal').value.split(',').map(s => s.trim()).filter(Boolean);
+  if (!palette.length) palette = ['#ffffff'];
+});
 
-/* ---------- overlays ---------- */
-function addOv() {
-  const text = $('oText').value.trim();
-  if (!text) return st('Enter some text first');
-  overlays.push({
-    text,
-    color: $('oColor').value,
-    size: +$('oSize').value,
-    pos: $('oPos').value,
-    start: +$('oStart').value || 0,
-    end: +$('oEnd').value || 0
-  });
-  renderList();
-  st('Overlay added ✅');
-}
-function delOv(i) { overlays.splice(i, 1); renderList(); }
-function renderList() {
-  $('ovList').innerHTML = overlays.map((o, i) =>
-    `<div class="ov"><span style="color:${o.color}">${esc(o.text.replace(/\n/g, ' '))}</span>
-     <b onclick="delOv(${i})">✕</b></div>`).join('');
+function parseLyrics() {
+  const lines = $('lyr').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const old = lyr;
+  lyr = lines.map((text, i) => ({ text, start: old[i] ? old[i].start : NaN }));
 }
 
-/* ---------- drawing ---------- */
-function drawText(o) {
-  ctx.font = `${o.size}px ${fontName}`;
+/* ---------- timing ---------- */
+function autoTime() {
+  parseLyrics();
+  if (!aud.duration) return st('Upload the song first');
+  if (!lyr.length) return st('Paste lyrics first');
+  lyr.forEach((l, i) => l.start = i * aud.duration / lyr.length);
+  st('Lines timed evenly ✅');
+}
+function startSync() {
+  if (!imgReady || !aud.src) return st('Upload an image and a song first');
+  parseLyrics();
+  if (!lyr.length) return st('Paste lyrics first');
+  lyr.forEach(l => l.start = NaN);
+  syncIdx = 0;
+  setupAudio(); actx.resume();
+  aud.currentTime = 0; aud.play();
+  playBtn.textContent = '⏸ Pause';
+  $('tapBtn').style.display = 'block';
+  st('Tap the red button exactly when each line starts.');
+}
+function tap() {
+  if (syncIdx < 0 || syncIdx >= lyr.length) return;
+  lyr[syncIdx].start = aud.currentTime;
+  syncIdx++;
+  if (syncIdx >= lyr.length) endSync(), st('All lines timed ✅');
+  else st(`Timed ${syncIdx} of ${lyr.length}. Keep going.`);
+}
+function endSync() { syncIdx = -1; $('tapBtn').style.display = 'none'; }
+aud.addEventListener('ended', () => { endSync(); playBtn.textContent = '▶ Preview'; });
+
+/* ---------- text drawing (auto font size + wrap) ---------- */
+function wrapText(text, size) {
+  ctx.font = `${size}px ${fontName}`;
+  const words = text.split(/\s+/), out = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > MAXW && line) { out.push(line); line = w; }
+    else line = test;
+  }
+  if (line) out.push(line);
+  return out;
+}
+function fitText(text) {
+  let size = 150, ls;
+  for (; size > 60; size -= 6) {
+    ls = wrapText(text, size);
+    if (ls.length <= 3) break;
+  }
+  return { size, lines: ls };
+}
+function drawLyric(i, t) {
+  const { size, lines } = fitText(lyr[i].text);
+  const pop = Math.min(1, (t - lyr[i].start) / 0.18);
+  const sc = 1.12 - 0.12 * pop;               // small pop-in animation
+  const lh = size * 1.1, cy = H * 0.27;
+  const color = palette[i % palette.length];
+  const y0 = -(lines.length - 1) * lh / 2;
+
+  ctx.save();
+  ctx.translate(W / 2, cy);
+  ctx.scale(sc, sc);
+  ctx.font = `${size}px ${fontName}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const lines = o.text.split('\n'), lh = o.size * 1.15;
-  let y = o.pos === 'top' ? H * 0.2 : o.pos === 'bottom' ? H * 0.8 : H / 2;
-  y -= (lines.length - 1) * lh / 2;
-
-  // Black outline with shadow
   ctx.lineJoin = 'round';
-  ctx.lineWidth = o.size * 0.16;
+
+  // Thick black outline with soft shadow
+  ctx.lineWidth = size * 0.22;
   ctx.strokeStyle = '#000';
-  ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = o.size * 0.12;
-  ctx.shadowOffsetY = o.size * 0.06;
-  lines.forEach((ln, i) => ctx.strokeText(ln, W / 2, y + i * lh));
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = size * 0.15;
+  ctx.shadowOffsetY = size * 0.08;
+  lines.forEach((l, k) => ctx.strokeText(l, 0, y0 + k * lh));
 
   // Colored fill on top
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  ctx.fillStyle = o.color;
-  lines.forEach((ln, i) => ctx.fillText(ln, W / 2, y + i * lh));
+  ctx.fillStyle = color;
+  lines.forEach((l, k) => ctx.fillText(l, 0, y0 + k * lh));
+  ctx.restore();
 }
-
+function activeLine(t) {
+  let cur = null;
+  lyr.forEach((l, i) => { if (!isNaN(l.start) && t >= l.start) cur = i; });
+  return cur;
+}
 function drawFrame() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
   if (imgReady) {
-    // Cover-fit the image into the 9:16 canvas
     const s = Math.max(W / img.width, H / img.height);
     const dw = img.width * s, dh = img.height * s;
     ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
   }
   const t = aud.currentTime;
-  overlays.forEach(o => {
-    if (t >= o.start && (o.end === 0 || t <= o.end)) drawText(o);
-  });
+  const cur = activeLine(t);
+  if (cur !== null) drawLyric(cur, t);
 }
 function loop() { drawFrame(); requestAnimationFrame(loop); }
 
-/* ---------- audio routing (song goes to speaker and recording) ---------- */
+/* ---------- audio routing (speaker + recording) ---------- */
 function setupAudio() {
   if (actx) return;
   actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -188,21 +211,18 @@ function setupAudio() {
 function togglePlay() {
   if (!imgReady || !aud.src) return st('Upload an image and a song first');
   setupAudio(); actx.resume();
-  if (aud.paused) {
-    aud.play();
-    playBtn.textContent = '⏸ Pause';
-  } else {
-    aud.pause();
-    playBtn.textContent = '▶ Preview';
-  }
+  if (aud.paused) { aud.play(); playBtn.textContent = '⏸ Pause'; }
+  else { aud.pause(); playBtn.textContent = '▶ Preview'; }
 }
-aud.addEventListener('ended', () => { playBtn.textContent = '▶ Preview'; });
 
-/* ---------- generate video (records canvas + song in real time) ---------- */
+/* ---------- generate video (real time) ---------- */
 function exportVid() {
+  parseLyrics();
   if (!imgReady || !aud.src) return st('Upload an image and a song first');
+  if (!lyr.some(l => !isNaN(l.start))) return st('Time the lyrics first (Auto-time or Tap-sync)');
   if (!window.MediaRecorder) return st('Recording not supported. Use Chrome.');
   setupAudio(); actx.resume();
+  endSync();
 
   const type = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
   const stream = new MediaStream([
@@ -236,7 +256,6 @@ function exportVid() {
 
 /* ---------- init ---------- */
 document.fonts.load('40px "Yatra One"').catch(() => {});
-renderList();
 loop();
 </script>
 </body>
