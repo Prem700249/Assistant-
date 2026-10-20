@@ -70,7 +70,7 @@ const $ = id => document.getElementById(id);
 const st = m => $('status').textContent = m;
 const fontName = '"Yatra One", sans-serif';
 
-let imgReady = false, songFile = null;
+let imgReady = false, songFile = null, songSeconds = 0;
 let lyr = [];                       // [{text, start}]
 let palette = ['#e10600', '#ffffff', '#ffd400'];
 let asr = null, asrModel = null, actx = null, dest = null;
@@ -86,6 +86,7 @@ $('fAud').onchange = e => {
   songFile = f;
   aud.src = URL.createObjectURL(f);
   aud.onloadedmetadata = () => {
+    songSeconds = aud.duration;
     $('info').textContent = `Song length: ${aud.duration.toFixed(1)} sec. Output video will be this long.`;
     st('Song loaded ✅ Now tap "Transcribe song with AI".');
   };
@@ -101,6 +102,17 @@ function parseLyrics() {
   lyr = lines.map((text, i) => ({ text, start: old[i] ? old[i].start : NaN }));
 }
 $('lyr').addEventListener('input', parseLyrics);
+
+/* ---------- split text into short singable lines ---------- */
+function splitPhrases(text) {
+  const parts = text.split(/[।.!?,;:]+/).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for (const p of parts) {
+    const words = p.split(/\s+/);
+    for (let i = 0; i < words.length; i += 5) out.push(words.slice(i, i + 5).join(' '));
+  }
+  return out;
+}
 
 /* ---------- AI transcription (runs in the browser) ---------- */
 $('transBtn').onclick = async () => {
@@ -121,6 +133,7 @@ $('transBtn').onclick = async () => {
     const ac = new AudioContext({ sampleRate: 16000 });
     const buf = await ac.decodeAudioData(await songFile.arrayBuffer());
     const pcm = buf.getChannelData(0);
+    const total = songSeconds || pcm.length / 16000;
     ac.close();
 
     st('AI is listening to the song. This can take a few minutes on a phone. Keep the screen on.');
@@ -128,10 +141,35 @@ $('transBtn').onclick = async () => {
       language: 'hindi', task: 'transcribe', return_timestamps: true,
       chunk_length_s: 30, stride_length_s: 5
     });
-    const chunks = (out.chunks || []).filter(c => c.text && c.text.trim());
-    lyr = chunks.map(c => ({ text: c.text.trim(), start: c.timestamp[0] ?? 0 }));
+
+    // Whisper segments, with timestamps when available
+    const segs = (out.chunks || [])
+      .filter(c => c.text && c.text.trim())
+      .map(c => ({
+        text: c.text.trim(),
+        s: c.timestamp && typeof c.timestamp[0] === 'number' ? c.timestamp[0] : null,
+        e: c.timestamp && typeof c.timestamp[1] === 'number' ? c.timestamp[1] : null
+      }));
+
+    // No segments at all: treat the full text as one block
+    if (!segs.length && out.text) segs.push({ text: out.text.trim(), s: 0, e: total });
+
+    // Split each segment into phrases and spread them over the segment's time range
+    const result = [];
+    let lastEnd = 0;
+    segs.forEach((g, i) => {
+      const s = g.s ?? lastEnd;
+      let e = g.e ?? (segs[i + 1] && segs[i + 1].s != null ? segs[i + 1].s : total);
+      if (e <= s) e = s + 2;
+      const ph = splitPhrases(g.text);
+      ph.forEach((p, k) => result.push({ text: p, start: s + (e - s) * k / ph.length }));
+      lastEnd = e;
+    });
+    result.sort((a, b) => a.start - b.start);
+
+    lyr = result;
     $('lyr').value = lyr.map(l => l.text).join('\n');
-    st(`Done ✅ ${lyr.length} lines found. Check and fix the text if needed.`);
+    st(`Done ✅ ${lyr.length} timed lines found. Check the text, then Preview.`);
   } catch (err) {
     console.error(err);
     st('Transcription failed: ' + (err.message || err) + '. Try again or use the tiny model.');
@@ -142,9 +180,9 @@ $('transBtn').onclick = async () => {
 /* ---------- fallback timing ---------- */
 $('autoBtn').onclick = () => {
   parseLyrics();
-  if (!aud.duration) return st('Upload the song first');
+  if (!songSeconds) return st('Upload the song first');
   if (!lyr.length) return st('Paste or transcribe lyrics first');
-  lyr.forEach((l, i) => l.start = i * aud.duration / lyr.length);
+  lyr.forEach((l, i) => l.start = i * songSeconds / lyr.length);
   st('Lines timed evenly ✅');
 };
 
@@ -199,11 +237,18 @@ function drawLyric(i, t) {
   lines.forEach((l, k) => ctx.fillText(l, 0, y0 + k * lh));
   ctx.restore();
 }
+
+// Current line = the latest line whose start time has passed.
+// Lines are sorted by start, so the loop below stops at the right one.
 function activeLine(t) {
   let cur = null;
-  lyr.forEach((l, i) => { if (!isNaN(l.start) && t >= l.start) cur = i; });
+  for (let i = 0; i < lyr.length; i++) {
+    if (!isNaN(lyr[i].start) && t >= lyr[i].start) cur = i;
+    else if (!isNaN(lyr[i].start) && lyr[i].start > t) break;
+  }
   return cur;
 }
+
 function drawFrame() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
