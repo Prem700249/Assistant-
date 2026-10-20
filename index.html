@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reel Lyric Video</title>
+<title>Reel Lyric Video (AI)</title>
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&display=swap" rel="stylesheet">
 <style>
 body{margin:0;font-family:system-ui,sans-serif;background:#111;color:#eee;padding:12px}
@@ -13,17 +13,17 @@ h2{font-size:1.1rem;margin:0 0 8px}
 canvas{width:100%;height:100%;display:block}
 .box{background:#1e1e1e;border-radius:14px;padding:12px;margin-top:12px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #333;background:#222;color:#eee;margin:4px 0;font-size:1rem}
-textarea{min-height:120px;resize:vertical}
+textarea{min-height:140px;resize:vertical}
 button{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:1rem;font-weight:600;margin-top:6px}
 button.sec{background:#333}
-button.tap{background:#e10600;font-size:1.3rem;padding:20px;display:none}
+button:disabled{opacity:.5}
 label{font-size:.85rem;color:#aaa;display:block;margin-top:6px}
 #status,#info{color:#aaa;font-size:.9rem;margin:8px 0 0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h2>🎬 Reel Lyric Video</h2>
+  <h2>🎬 Reel Lyric Video (AI)</h2>
 
   <div id="stage"><canvas id="cv" width="720" height="1280"></canvas></div>
   <audio id="aud"></audio>
@@ -37,37 +37,43 @@ label{font-size:.85rem;color:#aaa;display:block;margin-top:6px}
   </div>
 
   <div class="box">
-    <h2>📝 Lyrics (one line per row)</h2>
-    <textarea id="lyr" placeholder="Paste lyrics here, one line per row&#10;रास्ते में&#10;खो चुका"></textarea>
-    <label>Colors for lines, in order (comma separated)</label>
-    <input type="text" id="pal" value="#e10600,#ffffff,#ffd400">
-    <button class="sec" onclick="autoTime()">⏱ Auto-time evenly</button>
-    <button onclick="startSync()">🎯 Tap-sync with song</button>
-    <button class="tap" id="tapBtn" onclick="tap()">👆 TAP when the line starts</button>
+    <h2>🤖 AI lyrics</h2>
+    <label>Model (tiny = faster, base = more accurate but slower)</label>
+    <select id="model">
+      <option value="onnx-community/whisper-tiny">Whisper tiny (faster)</option>
+      <option value="onnx-community/whisper-base">Whisper base (more accurate)</option>
+    </select>
+    <button id="transBtn">🎧 Transcribe song with AI</button>
+    <label>Lyrics (one line per row, you can edit them)</label>
+    <textarea id="lyr" placeholder="Transcribed lines appear here"></textarea>
+    <button class="sec" id="autoBtn">⏱ Re-time lines evenly across song</button>
   </div>
 
   <div class="box">
-    <button class="sec" id="playBtn" onclick="togglePlay()">▶ Preview</button>
-    <button onclick="exportVid()">⬇ Generate video</button>
+    <label>Colors for lines, in order (comma separated)</label>
+    <input type="text" id="pal" value="#e10600,#ffffff,#ffd400">
+    <button class="sec" id="playBtn">▶ Preview</button>
+    <button id="genBtn">⬇ Generate video</button>
     <p id="status">Upload an image and a song to start.</p>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0";
+env.allowLocalModels = false;
+
 const W = 720, H = 1280, MAXW = 640;
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const aud = document.getElementById('aud');
-const playBtn = document.getElementById('playBtn');
 const img = new Image();
-let imgReady = false;
-let lyr = [];                      // [{text, start}]
-let palette = ['#e10600', '#ffffff', '#ffd400'];
-let syncIdx = -1;
-let actx = null, dest = null;
-const fontName = '"Yatra One", sans-serif';
-
 const $ = id => document.getElementById(id);
 const st = m => $('status').textContent = m;
+const fontName = '"Yatra One", sans-serif';
+
+let imgReady = false, songFile = null;
+let lyr = [];                       // [{text, start}]
+let palette = ['#e10600', '#ffffff', '#ffd400'];
+let asr = null, asrModel = null, actx = null, dest = null;
 
 /* ---------- inputs ---------- */
 $('fImg').onchange = e => {
@@ -77,13 +83,13 @@ $('fImg').onchange = e => {
 };
 $('fAud').onchange = e => {
   const f = e.target.files[0]; if (!f) return;
+  songFile = f;
   aud.src = URL.createObjectURL(f);
   aud.onloadedmetadata = () => {
     $('info').textContent = `Song length: ${aud.duration.toFixed(1)} sec. Output video will be this long.`;
-    st('Song loaded ✅');
+    st('Song loaded ✅ Now tap "Transcribe song with AI".');
   };
 };
-$('lyr').addEventListener('input', parseLyrics);
 $('pal').addEventListener('input', () => {
   palette = $('pal').value.split(',').map(s => s.trim()).filter(Boolean);
   if (!palette.length) palette = ['#ffffff'];
@@ -94,38 +100,55 @@ function parseLyrics() {
   const old = lyr;
   lyr = lines.map((text, i) => ({ text, start: old[i] ? old[i].start : NaN }));
 }
+$('lyr').addEventListener('input', parseLyrics);
 
-/* ---------- timing ---------- */
-function autoTime() {
+/* ---------- AI transcription (runs in the browser) ---------- */
+$('transBtn').onclick = async () => {
+  if (!songFile) return st('Upload the song first');
+  const btn = $('transBtn'); btn.disabled = true;
+  try {
+    const model = $('model').value;
+    if (!asr || asrModel !== model) {
+      st('Loading AI model (first time only, needs internet)...');
+      asr = await pipeline('automatic-speech-recognition', model, {
+        progress_callback: p => {
+          if (p.status === 'progress') st(`Downloading model... ${Math.round(p.progress)}%`);
+        }
+      });
+      asrModel = model;
+    }
+    st('Decoding song...');
+    const ac = new AudioContext({ sampleRate: 16000 });
+    const buf = await ac.decodeAudioData(await songFile.arrayBuffer());
+    const pcm = buf.getChannelData(0);
+    ac.close();
+
+    st('AI is listening to the song. This can take a few minutes on a phone. Keep the screen on.');
+    const out = await asr(pcm, {
+      language: 'hindi', task: 'transcribe', return_timestamps: true,
+      chunk_length_s: 30, stride_length_s: 5
+    });
+    const chunks = (out.chunks || []).filter(c => c.text && c.text.trim());
+    lyr = chunks.map(c => ({ text: c.text.trim(), start: c.timestamp[0] ?? 0 }));
+    $('lyr').value = lyr.map(l => l.text).join('\n');
+    st(`Done ✅ ${lyr.length} lines found. Check and fix the text if needed.`);
+  } catch (err) {
+    console.error(err);
+    st('Transcription failed: ' + (err.message || err) + '. Try again or use the tiny model.');
+  }
+  btn.disabled = false;
+};
+
+/* ---------- fallback timing ---------- */
+$('autoBtn').onclick = () => {
   parseLyrics();
   if (!aud.duration) return st('Upload the song first');
-  if (!lyr.length) return st('Paste lyrics first');
+  if (!lyr.length) return st('Paste or transcribe lyrics first');
   lyr.forEach((l, i) => l.start = i * aud.duration / lyr.length);
   st('Lines timed evenly ✅');
-}
-function startSync() {
-  if (!imgReady || !aud.src) return st('Upload an image and a song first');
-  parseLyrics();
-  if (!lyr.length) return st('Paste lyrics first');
-  lyr.forEach(l => l.start = NaN);
-  syncIdx = 0;
-  setupAudio(); actx.resume();
-  aud.currentTime = 0; aud.play();
-  playBtn.textContent = '⏸ Pause';
-  $('tapBtn').style.display = 'block';
-  st('Tap the red button exactly when each line starts.');
-}
-function tap() {
-  if (syncIdx < 0 || syncIdx >= lyr.length) return;
-  lyr[syncIdx].start = aud.currentTime;
-  syncIdx++;
-  if (syncIdx >= lyr.length) endSync(), st('All lines timed ✅');
-  else st(`Timed ${syncIdx} of ${lyr.length}. Keep going.`);
-}
-function endSync() { syncIdx = -1; $('tapBtn').style.display = 'none'; }
-aud.addEventListener('ended', () => { endSync(); playBtn.textContent = '▶ Preview'; });
+};
 
-/* ---------- text drawing (auto font size + wrap) ---------- */
+/* ---------- text drawing (auto size + wrap) ---------- */
 function wrapText(text, size) {
   ctx.font = `${size}px ${fontName}`;
   const words = text.split(/\s+/), out = [];
@@ -149,7 +172,7 @@ function fitText(text) {
 function drawLyric(i, t) {
   const { size, lines } = fitText(lyr[i].text);
   const pop = Math.min(1, (t - lyr[i].start) / 0.18);
-  const sc = 1.12 - 0.12 * pop;               // small pop-in animation
+  const sc = 1.12 - 0.12 * pop;
   const lh = size * 1.1, cy = H * 0.27;
   const color = palette[i % palette.length];
   const y0 = -(lines.length - 1) * lh / 2;
@@ -162,7 +185,6 @@ function drawLyric(i, t) {
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
 
-  // Thick black outline with soft shadow
   ctx.lineWidth = size * 0.22;
   ctx.strokeStyle = '#000';
   ctx.shadowColor = 'rgba(0,0,0,0.6)';
@@ -170,7 +192,6 @@ function drawLyric(i, t) {
   ctx.shadowOffsetY = size * 0.08;
   lines.forEach((l, k) => ctx.strokeText(l, 0, y0 + k * lh));
 
-  // Colored fill on top
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
@@ -208,21 +229,21 @@ function setupAudio() {
 }
 
 /* ---------- preview ---------- */
-function togglePlay() {
+$('playBtn').onclick = () => {
   if (!imgReady || !aud.src) return st('Upload an image and a song first');
   setupAudio(); actx.resume();
-  if (aud.paused) { aud.play(); playBtn.textContent = '⏸ Pause'; }
-  else { aud.pause(); playBtn.textContent = '▶ Preview'; }
-}
+  if (aud.paused) { aud.play(); $('playBtn').textContent = '⏸ Pause'; }
+  else { aud.pause(); $('playBtn').textContent = '▶ Preview'; }
+};
+aud.addEventListener('ended', () => $('playBtn').textContent = '▶ Preview');
 
 /* ---------- generate video (real time) ---------- */
-function exportVid() {
+$('genBtn').onclick = () => {
   parseLyrics();
   if (!imgReady || !aud.src) return st('Upload an image and a song first');
-  if (!lyr.some(l => !isNaN(l.start))) return st('Time the lyrics first (Auto-time or Tap-sync)');
+  if (!lyr.some(l => !isNaN(l.start))) return st('Transcribe the song first (or use re-time)');
   if (!window.MediaRecorder) return st('Recording not supported. Use Chrome.');
   setupAudio(); actx.resume();
-  endSync();
 
   const type = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
   const stream = new MediaStream([
@@ -238,7 +259,7 @@ function exportVid() {
     a.href = URL.createObjectURL(blob);
     a.download = 'reel.' + (type.includes('mp4') ? 'mp4' : 'webm');
     a.click();
-    playBtn.textContent = '▶ Preview';
+    $('playBtn').textContent = '▶ Preview';
     st('Video saved ✅ Check your Downloads folder');
   };
 
@@ -250,11 +271,10 @@ function exportVid() {
   });
   rec.start();
   aud.play();
-  playBtn.textContent = '⏸ Pause';
+  $('playBtn').textContent = '⏸ Pause';
   st('Generating video... keep this screen open until the song ends');
-}
+};
 
-/* ---------- init ---------- */
 document.fonts.load('40px "Yatra One"').catch(() => {});
 loop();
 </script>
