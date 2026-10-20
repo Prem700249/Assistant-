@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,177 +7,43 @@
 <meta name="description" content="Dayflow personal assistant for tasks, notes, habits, calendar and focus.">
 <title>Dayflow — Personal Assistant</title>
 <style>
-:root{
- color-scheme:dark;--bg:#0b1020;--surface:#121a2c;--card:#172137;
- --card2:#1d2942;--text:#f1f5ff;--muted:#97a5c0;--line:#293650;
- --accent:#9b8cff;--accent2:#6c7bff;--green:#55d6a1;
- --red:#ff7586;--yellow:#ffd078;--blue:#72c9ff;
- --shadow:0 12px 35px #00000022
-}
-[data-theme="light"]{
- color-scheme:light;--bg:#f4f6fc;--surface:#fff;--card:#fff;
- --card2:#eef1ff;--text:#19223b;--muted:#71809b;--line:#e4e8f2;
- --accent:#6855e8;--accent2:#8978ff;--green:#159b70;
- --red:#df465c;--yellow:#b7790a;--blue:#237cba;
- --shadow:0 8px 26px #26345b0b
-}
+:root{color-scheme:dark;--bg:#0b1020;--surface:#121a2c;--card:#172137;--card2:#1d2942;--text:#f1f5ff;--muted:#97a5c0;--line:#293650;--accent:#9b8cff;--accent2:#6c7bff;--green:#55d6a1;--red:#ff7586;--yellow:#ffd078;--blue:#72c9ff;--shadow:0 12px 35px #0002}
+[data-theme=light]{color-scheme:light;--bg:#f4f6fc;--surface:#fff;--card:#fff;--card2:#eef1ff;--text:#19223b;--muted:#71809b;--line:#e4e8f2;--accent:#6855e8;--accent2:#8978ff;--green:#159b70;--red:#df465c;--yellow:#b7790a;--blue:#237cba;--shadow:0 8px 26px #26345b0b}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{
- font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
- background:var(--bg);color:var(--text);min-height:100vh;
- padding-bottom:calc(92px + env(safe-area-inset-bottom));
- transition:background .25s,color .25s
-}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
- outline:2px solid var(--accent);outline-offset:3px
-}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(90px + env(safe-area-inset-bottom));transition:background .2s}
+button,input,select,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
 .app{max-width:720px;margin:auto}
-.top{
- padding:24px 20px 25px;
- background:radial-gradient(ellipse at 90% 0%,#7165df55,transparent 48%),linear-gradient(140deg,#141c36,#101525 80%);
- border-bottom:1px solid #ffffff0d
-}
-[data-theme="light"] .top{
- background:radial-gradient(ellipse at 90% 0%,#b9b0ff80,transparent 48%),linear-gradient(140deg,#fff,#f1f0ff)
-}
-.toprow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:11px}
-.logo{
- width:44px;height:44px;display:grid;place-items:center;border-radius:15px;
- background:linear-gradient(135deg,#a99bff,#7167f6);color:white;font-size:23px;
- box-shadow:0 7px 20px #7567ff38
-}
-.brand h1{font-size:20px;letter-spacing:-.6px}
-.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-.topactions{display:flex;gap:8px}
-.iconbtn{
- width:42px;height:42px;border:1px solid var(--line);border-radius:14px;
- background:var(--card);color:var(--text);font-size:18px;display:grid;place-items:center
-}
-.hero{padding-top:28px}
-.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:1.8px}
-.hero h2{font-size:clamp(27px,6vw,37px);line-height:1.18;letter-spacing:-1.3px;margin-top:8px}
-.hero h2 span{color:var(--accent)}
-.hero p{color:var(--muted);font-size:13px;margin-top:9px}
+.top{padding:22px 20px 25px;background:radial-gradient(ellipse at 90% 0%,#7165df55,transparent 48%),linear-gradient(140deg,#141c36,#101525 80%);border-bottom:1px solid #ffffff0d}
+[data-theme=light] .top{background:radial-gradient(ellipse at 90% 0%,#b9b0ff80,transparent 48%),linear-gradient(140deg,#fff,#f1f0ff)}
+.toprow,.brand,.topactions{display:flex;align-items:center}.toprow{justify-content:space-between;gap:12px}.brand{gap:11px}.logo{width:44px;height:44px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,#a99bff,#7167f6);color:white;font-size:23px}.brand h1{font-size:20px;letter-spacing:-.6px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.topactions{gap:8px}
+.iconbtn{width:42px;height:42px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);font-size:18px;display:grid;place-items:center}
+.hero{padding-top:25px}.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:1.8px}.hero h2{font-size:clamp(27px,6vw,37px);line-height:1.18;letter-spacing:-1.3px;margin-top:8px}.hero h2 span{color:var(--accent)}.hero p{color:var(--muted);font-size:13px;margin-top:9px}
 main{padding:18px 16px;max-width:720px;margin:auto}
-.view{display:none;animation:appear .22s ease}
-.view.active{display:block}
-@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 2px 15px}
-.sectionhead h2{font-size:23px;letter-spacing:-.6px}
-.sectionhead p{font-size:12px;color:var(--muted);margin-top:4px}
-.card{
- background:var(--card);border:1px solid var(--line);border-radius:22px;
- padding:17px;margin-bottom:14px;box-shadow:var(--shadow)
-}
-.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
-.cardhead h3{font-size:14px;font-weight:750}
-.muted{color:var(--muted)}.small{font-size:12px}
-.pill{font-size:10px;font-weight:750;border-radius:30px;padding:6px 9px;background:var(--card2);color:var(--accent);white-space:nowrap}
-.btn{
- border:0;border-radius:13px;padding:12px 15px;font-weight:750;font-size:13px;
- color:white;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:transform .15s
-}
-.btn:active{transform:scale(.97)}
-.btn.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}
-.btn.danger{background:#c53f56;color:#fff}
-.btn.sm{padding:8px 11px;font-size:11px;border-radius:10px}
-.btn.full{width:100%}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px}
-.input,select,textarea{
- width:100%;border:1px solid var(--line);border-radius:13px;
- background:var(--bg);color:var(--text);padding:12px 13px;min-width:0;font-size:13px
-}
-textarea{min-height:95px;resize:vertical}
-.inputrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:15px}
-.stat{padding:15px;border-radius:19px;border:1px solid var(--line);background:var(--card);min-width:0}
-.stat .emoji{font-size:19px}
-.stat strong{display:block;font-size:27px;letter-spacing:-1px;margin:8px 0 2px}
-.stat small{color:var(--muted);font-size:11px}
-.progress{height:7px;border-radius:20px;background:var(--line);overflow:hidden;margin-top:12px}
-.progress div{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .3s}
-.quote{background:linear-gradient(130deg,#6e60dc25,#9a8aff09);border:1px solid #9b8cff33;border-radius:22px;padding:20px;margin-bottom:14px}
-.quote .mark{font-size:30px;color:var(--accent);line-height:1}
-.quote p{font-size:17px;font-weight:650;line-height:1.55;margin:8px 0 12px}
-.quotefoot{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.listitem{
- display:flex;align-items:flex-start;gap:11px;padding:13px;background:var(--surface);
- border:1px solid var(--line);border-radius:15px;margin-bottom:9px;min-width:0
-}
-.listitem:last-child{margin-bottom:0}
-.check{
- width:24px;height:24px;flex:0 0 24px;border:2px solid var(--line);
- border-radius:8px;background:transparent;color:#fff;display:grid;place-items:center;font-size:13px;margin-top:1px
-}
-.check.on{background:var(--green);border-color:var(--green)}
-.itembody{flex:1;min-width:0}
-.itemtitle{font-size:13px;font-weight:750;overflow-wrap:anywhere}
-.itembody.done .itemtitle{text-decoration:line-through;opacity:.55}
-.itemmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;align-items:center}
-.tag{font-size:10px;font-weight:750;padding:4px 7px;border-radius:7px;background:var(--card2)}
-.tag.high{color:var(--red)}.tag.medium{color:var(--yellow)}.tag.low{color:var(--green)}
-.tag.overdue{color:var(--red);background:#ff758615}
-.actions{display:flex;gap:5px;flex-shrink:0}
-.mini{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:9px;min-width:31px;height:31px;padding:0 7px}
-.empty{text-align:center;padding:30px 15px;color:var(--muted)}
-.empty div{font-size:30px;margin-bottom:9px}
-.empty strong{display:block;color:var(--text);font-size:14px;margin-bottom:5px}
-.empty p{font-size:12px;line-height:1.5}
-.filters{display:flex;gap:7px;overflow:auto;margin-bottom:13px;padding:1px 0 5px}
-.filter{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:30px;padding:8px 13px;white-space:nowrap;font-size:11px;font-weight:750}
-.filter.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.search{margin-bottom:13px}
-.notecontent{font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0}
-.calendar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
-.calendar-top strong{font-size:15px}
-.weekdays,.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
-.weekdays div{font-size:10px;color:var(--muted);padding:7px 0}
-.day{position:relative;min-height:41px;border:0;border-radius:12px;background:transparent;color:var(--text);font-size:12px}
-.day.today{border:1px solid var(--accent)}
-.day.selected{background:var(--accent);color:white}
-.day .dot{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--yellow)}
-.day.selected .dot{background:#fff}
-.habitrow{display:flex;align-items:center;gap:12px}
-.habiticon{width:43px;height:43px;border-radius:15px;display:grid;place-items:center;background:var(--card2);font-size:21px;flex-shrink:0}
-.habitinfo{flex:1;min-width:0}
-.habitinfo strong{font-size:13px;overflow-wrap:anywhere}
-.habitinfo p{font-size:11px;color:var(--muted);margin-top:5px}
-.weekdots{display:flex;gap:5px;margin-top:12px}
-.weekdots span{flex:1;height:5px;border-radius:5px;background:var(--line)}
-.weekdots span.on{background:var(--green)}
-.timerbox{text-align:center;padding:24px 10px}
-.timerlabel{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:1.6px}
-.bigtime{font-size:clamp(43px,12vw,64px);font-weight:800;letter-spacing:-2px;font-variant-numeric:tabular-nums;margin:13px 0}
-.timerbuttons{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
-.timerbuttons button{min-width:90px}
-.modebar{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:12px}
-.modebar button{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:8px 12px;border-radius:10px;font-size:11px}
-.modebar button.on{background:var(--card2);border-color:var(--accent);color:var(--accent)}
-.weatherhero{display:flex;align-items:center;gap:15px}
-.weathericon{font-size:47px}
-.weatherhero strong{font-size:30px}
-.forecast{display:flex;gap:8px;overflow-x:auto;margin-top:15px}
-.forecastday{flex:1;min-width:60px;background:var(--surface);border-radius:13px;padding:11px 7px;text-align:center;font-size:11px}
-.forecastday b{display:block;margin:7px 0}
-.nav{
- position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;justify-content:space-around;gap:2px;
- padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:var(--surface);
- border-top:1px solid var(--line);box-shadow:0 -8px 25px #00000012
-}
-.nav button{flex:1;min-width:0;border:0;background:transparent;color:var(--muted);border-radius:13px;padding:7px 1px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;font-weight:700}
-.nav button .navicon{font-size:19px;line-height:1.1}
-.nav button.on{color:var(--accent);background:var(--card2)}
+.view{display:none}.view.active{display:block;animation:appear .18s ease}@keyframes appear{from{opacity:.5;transform:translateY(3px)}to{opacity:1;transform:none}}
+.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 2px 15px}.sectionhead h2{font-size:23px;letter-spacing:-.6px}.sectionhead p{font-size:12px;color:var(--muted);margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:17px;margin-bottom:14px;box-shadow:var(--shadow)}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.cardhead h3{font-size:14px;font-weight:750}
+.muted{color:var(--muted)}.small{font-size:12px}.pill{font-size:10px;font-weight:750;border-radius:30px;padding:6px 9px;background:var(--card2);color:var(--accent);white-space:nowrap}
+.btn{border:0;border-radius:13px;padding:12px 15px;font-weight:750;font-size:13px;color:white;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:transform .12s}.btn:active{transform:scale(.97)}.btn.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}.btn.danger{background:#c53f56}.btn.sm{padding:8px 11px;font-size:11px;border-radius:10px}.btn.full{width:100%}
+.field{margin-bottom:12px}.field label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px}.input,select,textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--text);padding:12px 13px;min-width:0;font-size:13px}.inputrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}textarea{min-height:95px;resize:vertical}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:15px}.stat{padding:15px;border-radius:19px;border:1px solid var(--line);background:var(--card);min-width:0}.stat .emoji{font-size:19px}.stat strong{display:block;font-size:27px;letter-spacing:-1px;margin:8px 0 2px}.stat small{color:var(--muted);font-size:11px}
+.progress{height:7px;border-radius:20px;background:var(--line);overflow:hidden;margin-top:12px}.progress div{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .3s}
+.quote{background:linear-gradient(130deg,#6e60dc25,#9a8aff09);border:1px solid #9b8cff33;border-radius:22px;padding:20px;margin-bottom:14px}.quote .mark{font-size:30px;color:var(--accent);line-height:1}.quote p{font-size:17px;font-weight:650;line-height:1.55;margin:8px 0 12px}.quotefoot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.listitem{display:flex;align-items:flex-start;gap:11px;padding:13px;background:var(--surface);border:1px solid var(--line);border-radius:15px;margin-bottom:9px;min-width:0}.itembody{flex:1;min-width:0}.itemtitle{font-size:13px;font-weight:750;overflow-wrap:anywhere}.itembody.done .itemtitle{text-decoration:line-through;opacity:.55}.itemmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;align-items:center}.tag{font-size:10px;font-weight:750;padding:4px 7px;border-radius:7px;background:var(--card2)}.tag.high{color:var(--red)}.tag.medium{color:var(--yellow)}.tag.low{color:var(--green)}.tag.overdue{color:var(--red)}.actions{display:flex;gap:5px;flex-shrink:0}.mini{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:9px;min-width:32px;min-height:32px;padding:5px}.check{width:25px;height:25px;flex:0 0 25px;border:2px solid var(--line);border-radius:8px;background:transparent;color:white;display:grid;place-items:center;font-size:13px}.check.on{background:var(--green);border-color:var(--green)}
+.empty{text-align:center;padding:28px 15px;color:var(--muted)}.empty div{font-size:30px;margin-bottom:9px}.empty strong{display:block;color:var(--text);font-size:14px;margin-bottom:5px}.empty p{font-size:12px;line-height:1.5}
+.filters{display:flex;gap:7px;overflow-x:auto;margin-bottom:13px;padding:1px 0 5px}.filter{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:30px;padding:8px 13px;white-space:nowrap;font-size:11px;font-weight:750}.filter.on{background:var(--accent);color:#fff;border-color:var(--accent)}.search{margin-bottom:13px}.notecontent{font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0}
+.calendar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.calendar-top strong{font-size:15px}.weekdays,.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.weekdays div{font-size:10px;color:var(--muted);padding:7px 0}.day{position:relative;min-height:41px;border:0;border-radius:12px;background:transparent;color:var(--text);font-size:12px}.day.today{border:1px solid var(--accent)}.day.selected{background:var(--accent);color:white}.day .dot{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--yellow)}
+.habitrow{display:flex;align-items:center;gap:12px}.habiticon{width:43px;height:43px;border-radius:15px;display:grid;place-items:center;background:var(--card2);font-size:21px;flex-shrink:0}.habitinfo{flex:1;min-width:0}.habitinfo strong{font-size:13px;overflow-wrap:anywhere}.habitinfo p{font-size:11px;color:var(--muted);margin-top:5px}.weekdots{display:flex;gap:5px;margin-top:12px}.weekdots span{flex:1;height:5px;border-radius:5px;background:var(--line)}.weekdots span.on{background:var(--green)}
+.timerbox{text-align:center;padding:24px 10px}.timerlabel{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:1.6px}.bigtime{font-size:clamp(43px,12vw,64px);font-weight:800;letter-spacing:-2px;font-variant-numeric:tabular-nums;margin:13px 0}.timerbuttons{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}.timerbuttons button{min-width:90px}.modebar{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:12px}.modebar button{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:8px 12px;border-radius:10px;font-size:11px}.modebar button.on{background:var(--card2);border-color:var(--accent);color:var(--accent)}
+.weatherhero{display:flex;align-items:center;gap:15px}.weathericon{font-size:47px}.weatherhero strong{font-size:30px}.forecast{display:flex;gap:8px;overflow-x:auto;margin-top:15px}.forecastday{flex:1;min-width:60px;background:var(--surface);border-radius:13px;padding:11px 7px;text-align:center;font-size:11px}.forecastday b{display:block;margin:7px 0}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;justify-content:space-around;gap:2px;padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 25px #00000012}.nav button{flex:1;min-width:0;border:0;background:transparent;color:var(--muted);border-radius:13px;padding:7px 1px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;font-weight:700}.nav button .navicon{font-size:19px;line-height:1.1}.nav button.on{color:var(--accent);background:var(--card2)}
 .fab{position:fixed;right:max(20px,calc((100vw - 680px)/2));bottom:calc(90px + env(safe-area-inset-bottom));z-index:25;border:0;border-radius:18px;width:53px;height:53px;font-size:26px;color:white;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 9px 25px #7867ff55}
-#toast{position:fixed;bottom:calc(102px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);opacity:0;pointer-events:none;z-index:100;background:var(--text);color:var(--bg);padding:12px 17px;border-radius:13px;max-width:90%;font-size:12px;font-weight:700;text-align:center;transition:.2s}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-#mic.listening{background:var(--red);color:white}
+#toast{position:fixed;bottom:calc(102px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);opacity:0;pointer-events:none;z-index:100;background:var(--text);color:var(--bg);padding:12px 17px;border-radius:13px;max-width:90%;font-size:12px;font-weight:700;text-align:center;transition:.2s}#toast.show{opacity:1;transform:translate(-50%,0)}
 .footerhint{font-size:10px;color:var(--muted);text-align:center;margin:15px 0}
 @media(min-width:600px){main{padding:23px 22px}.top{padding:26px 25px 30px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -185,94 +51,49 @@ textarea{min-height:95px;resize:vertical}
 <header class="top">
  <div class="toprow">
   <div class="brand"><div class="logo">✦</div><div><h1>dayflow<span style="color:var(--accent)">.</span></h1><small>YOUR PERSONAL SPACE</small></div></div>
-  <div class="topactions">
-   <button class="iconbtn" id="mic" title="Voice command" aria-label="Voice command">🎙️</button>
-   <button class="iconbtn" id="themeBtn" title="Switch theme" aria-label="Switch theme">☀️</button>
-  </div>
+  <div class="topactions"><button class="iconbtn" id="mic" title="Voice command" aria-label="Voice command">🎙️</button><button class="iconbtn" id="themeBtn" title="Switch theme" aria-label="Switch theme">☀️</button></div>
  </div>
- <div class="hero">
-  <div class="eyebrow" id="todayLabel">YOUR DAY, YOUR WAY</div>
-  <h2 id="greeting">Make today<br><span>count.</span></h2>
-  <p id="clock">A little progress every day adds up.</p>
- </div>
+ <div class="hero"><div class="eyebrow" id="todayLabel">YOUR DAY, YOUR WAY</div><h2 id="greeting">Make today<br><span>count.</span></h2><p id="clock">A little progress every day adds up.</p></div>
 </header>
-
 <main>
 <section class="view active" id="v-home">
  <div class="quote"><div class="mark">“</div><p id="quoteText">Great things are done by a series of small things brought together.</p><div class="quotefoot"><span class="muted small" id="quoteAuthor">— Vincent van Gogh</span><button class="btn sm secondary" id="newQuote">↻ Inspire me</button></div></div>
  <div class="stats">
-  <div class="stat"><span class="emoji">☑️</span><strong id="statTasks">0</strong><small>Tasks remaining</small></div>
-  <div class="stat"><span class="emoji">🎯</span><strong id="statHabits">0/0</strong><small>Habits completed</small></div>
-  <div class="stat"><span class="emoji">📅</span><strong id="statEvents">0</strong><small>Events today</small></div>
-  <div class="stat"><span class="emoji">✨</span><strong id="statDone">0%</strong><small>Task progress</small></div>
+  <div class="stat"><span class="emoji">☑️</span><strong id="statTasks">0</strong><small>Tasks remaining</small></div><div class="stat"><span class="emoji">🎯</span><strong id="statHabits">0/0</strong><small>Habits completed</small></div><div class="stat"><span class="emoji">📅</span><strong id="statEvents">0</strong><small>Events today</small></div><div class="stat"><span class="emoji">✨</span><strong id="statDone">0%</strong><small>Task progress</small></div>
  </div>
  <div class="card"><div class="cardhead"><h3>📈 Your daily progress</h3><span class="pill" id="progressLabel">Let's begin</span></div><div class="progress"><div id="progressBar" style="width:0%"></div></div><p class="muted small" id="progressText" style="margin-top:10px">Every completed task is a win.</p></div>
  <div class="card"><div class="cardhead"><h3>⚡ Coming up</h3><button class="btn sm secondary" data-go="tasks">All tasks →</button></div><div id="homeTasks"></div></div>
  <div class="card"><div class="cardhead"><h3>🗓️ Upcoming events</h3><button class="btn sm secondary" data-go="calendar">Calendar →</button></div><div id="homeEvents"></div></div>
- <div class="card"><div class="cardhead"><h3>🌤️ Weather</h3><button class="btn sm secondary" id="weatherBtn">Refresh</button></div><div id="weatherBox" class="muted small">Weather needs internet and location permission.</div></div>
- <p class="footerhint">Your space. Your pace. Your progress. ✨</p>
+ <div class="card"><div class="cardhead"><h3>🌤️ Weather</h3><button class="btn sm secondary" id="weatherBtn">Refresh</button></div><div id="weatherBox" class="muted small">Tap Refresh to load local weather.</div></div><p class="footerhint">Your space. Your pace. Your progress. ✨</p>
 </section>
 
 <section class="view" id="v-tasks">
  <div class="sectionhead"><div><h2>My tasks</h2><p>Turn your plans into progress.</p></div><span class="pill" id="taskCount">0 tasks</span></div>
- <div class="card"><div class="cardhead"><h3>✦ Create a task</h3></div>
-  <form id="taskForm">
-   <div class="field"><label for="tTitle">TASK NAME</label><input class="input" id="tTitle" placeholder="What would you like to get done?" required maxlength="180"></div>
-   <div class="inputrow"><div class="field"><label for="tPri">PRIORITY</label><select id="tPri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div><div class="field"><label for="tDue">DEADLINE</label><input class="input" type="date" id="tDue"></div></div>
-   <button class="btn full" type="submit">＋ Add task</button>
-  </form>
- </div>
- <div class="filters" id="taskFilters"><button class="filter on" data-filter="all">All tasks</button><button class="filter" data-filter="pending">To do</button><button class="filter" data-filter="done">Completed</button></div>
- <div id="taskList"></div>
+ <div class="card"><div class="cardhead"><h3>✦ Create a task</h3></div><form id="taskForm"><div class="field"><label for="tTitle">TASK NAME</label><input class="input" id="tTitle" placeholder="What would you like to get done?" required maxlength="180"></div><div class="inputrow"><div class="field"><label for="tPri">PRIORITY</label><select id="tPri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div><div class="field"><label for="tDue">DEADLINE</label><input class="input" type="date" id="tDue"></div></div><button class="btn full" type="submit">＋ Add task</button></form></div>
+ <div class="filters" id="taskFilters"><button class="filter on" data-filter="all">All tasks</button><button class="filter" data-filter="pending">To do</button><button class="filter" data-filter="done">Completed</button></div><div id="taskList"></div>
 </section>
 
 <section class="view" id="v-notes">
  <div class="sectionhead"><div><h2>My notes</h2><p>Catch ideas before they disappear.</p></div><span class="pill" id="noteCount">0 notes</span></div>
- <div class="card"><div class="cardhead"><h3>📝 Quick capture</h3><button class="btn sm secondary" id="voiceNote">🎙️ Speak</button></div>
-  <form id="noteForm">
-   <div class="field"><label for="nTitle">TITLE</label><input class="input" id="nTitle" placeholder="Give your idea a name" maxlength="160"></div>
-   <div class="field"><label for="nBody">YOUR NOTE</label><textarea id="nBody" placeholder="Write something worth remembering..."></textarea></div>
-   <div class="field"><label for="nCat">CATEGORY</label><select id="nCat"><option>Personal</option><option>Work</option><option>Ideas</option><option>Study</option><option>Important</option></select></div>
-   <button class="btn full" type="submit">Save to my notes ↗</button>
-  </form>
- </div>
- <input class="input search" id="noteSearch" placeholder="⌕ Search your notes...">
- <div class="filters" id="noteFilters"><button class="filter on" data-cat="all">All</button><button class="filter" data-cat="Personal">Personal</button><button class="filter" data-cat="Work">Work</button><button class="filter" data-cat="Ideas">Ideas</button><button class="filter" data-cat="Study">Study</button><button class="filter" data-cat="Important">Important</button></div>
- <div id="noteList"></div>
+ <div class="card"><div class="cardhead"><h3>📝 Quick capture</h3><button class="btn sm secondary" id="voiceNote">🎙️ Speak</button></div><form id="noteForm"><div class="field"><label for="nTitle">TITLE</label><input class="input" id="nTitle" placeholder="Give your idea a name" maxlength="160"></div><div class="field"><label for="nBody">YOUR NOTE</label><textarea id="nBody" placeholder="Write something worth remembering..."></textarea></div><div class="field"><label for="nCat">CATEGORY</label><select id="nCat"><option>Personal</option><option>Work</option><option>Ideas</option><option>Study</option><option>Important</option></select></div><button class="btn full" type="submit">Save to my notes ↗</button></form></div>
+ <input class="input search" id="noteSearch" placeholder="⌕ Search your notes..."><div class="filters" id="noteFilters"><button class="filter on" data-cat="all">All</button><button class="filter" data-cat="Personal">Personal</button><button class="filter" data-cat="Work">Work</button><button class="filter" data-cat="Ideas">Ideas</button><button class="filter" data-cat="Study">Study</button><button class="filter" data-cat="Important">Important</button></div><div id="noteList"></div>
 </section>
 
 <section class="view" id="v-calendar">
  <div class="sectionhead"><div><h2>Calendar</h2><p>Make room for what matters.</p></div></div>
- <div class="card">
-  <div class="calendar-top"><button class="mini" id="calPrev" aria-label="Previous month">←</button><strong id="calTitle"></strong><button class="mini" id="calNext" aria-label="Next month">→</button></div>
-  <div class="weekdays"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
-  <div class="calgrid" id="calGrid"></div><button class="btn secondary full" id="calToday" style="margin-top:13px">Jump to today</button>
- </div>
+ <div class="card"><div class="calendar-top"><button class="mini" id="calPrev" aria-label="Previous month">←</button><strong id="calTitle"></strong><button class="mini" id="calNext" aria-label="Next month">→</button></div><div class="weekdays"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div><div class="calgrid" id="calGrid"></div><button class="btn secondary full" id="calToday" style="margin-top:13px">Jump to today</button></div>
  <div class="card"><div class="cardhead"><h3 id="selDayTitle">Events</h3><span class="pill" id="dayCount">0 events</span></div><div id="dayEvents"></div></div>
- <div class="card"><div class="cardhead"><h3>＋ Plan an event</h3></div>
-  <form id="eventForm">
-   <div class="field"><label for="evTitle">EVENT NAME</label><input class="input" id="evTitle" placeholder="Birthday, appointment, deadline..." required maxlength="180"></div>
-   <div class="inputrow"><div class="field"><label for="evDate">DATE</label><input class="input" type="date" id="evDate" required></div><div class="field"><label for="evTime">TIME</label><input class="input" type="time" id="evTime"></div></div>
-   <div class="field"><label for="evCat">CATEGORY</label><select id="evCat"><option value="#9b8cff">Personal</option><option value="#ff7586">Important</option><option value="#55d6a1">Health</option><option value="#ffd078">Birthday</option><option value="#72c9ff">Work</option></select></div>
-   <button class="btn full" type="submit">Save event</button>
-  </form>
-  <p class="muted small" style="margin-top:10px">Events are saved in this browser. Reliable alerts while the app is closed require additional platform support.</p>
- </div>
+ <div class="card"><div class="cardhead"><h3>＋ Plan an event</h3></div><form id="eventForm"><div class="field"><label for="evTitle">EVENT NAME</label><input class="input" id="evTitle" placeholder="Birthday, appointment, deadline..." required maxlength="180"></div><div class="inputrow"><div class="field"><label for="evDate">DATE</label><input class="input" type="date" id="evDate" required></div><div class="field"><label for="evTime">TIME</label><input class="input" type="time" id="evTime"></div></div><div class="field"><label for="evCat">CATEGORY</label><select id="evCat"><option value="#9b8cff">Personal</option><option value="#ff7586">Important</option><option value="#55d6a1">Health</option><option value="#ffd078">Birthday</option><option value="#72c9ff">Work</option></select></div><button class="btn full" type="submit">Save event</button></form><p class="muted small" style="margin-top:10px">Events are saved in this browser.</p></div>
 </section>
 
 <section class="view" id="v-habits">
  <div class="sectionhead"><div><h2>My habits</h2><p>Small steps. Remarkable change.</p></div><span class="pill" id="habitCount">0 habits</span></div>
  <div class="card"><div class="cardhead"><h3>🎯 Start a new habit</h3></div><form id="habitForm"><div class="field"><label for="hName">HABIT NAME</label><input class="input" id="hName" placeholder="Read 10 pages, drink water..." required maxlength="100"></div><button class="btn full" type="submit">＋ Build this habit</button></form></div>
- <div class="card"><div class="cardhead"><h3>🔥 Your consistency</h3><span class="pill" id="habitSummary">0 done today</span></div><p class="muted small">Check off each habit when you've done it today. Your streak grows with consecutive days.</p></div>
- <div id="habitList"></div>
+ <div class="card"><div class="cardhead"><h3>🔥 Your consistency</h3><span class="pill" id="habitSummary">0 done today</span></div><p class="muted small">Check off each habit when you've done it today.</p></div><div id="habitList"></div>
 </section>
 
 <section class="view" id="v-timer">
  <div class="sectionhead"><div><h2>Focus space</h2><p>One thing at a time. You've got this.</p></div></div>
- <div class="card"><div class="cardhead"><h3>🍅 Focus timer</h3><span class="pill" id="pomoCount">Deep work</span></div>
-  <div class="timerbox"><div class="timerlabel" id="pomoMode">FOCUS SESSION</div><div class="bigtime" id="pomoDisplay">25:00</div><div class="progress"><div id="pomoBar" style="width:100%"></div></div>
-   <div class="timerbuttons" style="margin-top:20px"><button class="btn" id="pomoStart">Start focus</button><button class="btn secondary" id="pomoReset">Reset</button></div>
-   <div class="modebar"><button class="on" data-pomo="25">Focus 25m</button><button data-pomo="5">Short break</button><button data-pomo="15">Long break</button></div>
-  </div>
- </div>
- <div class="card"><div class="cardhead"><h3>⏱️ Stopwatch</h3><span class="pill">Track time</span></div><div class="bigtime" id="swDisplay" style="text-align:center">00:00.00</div><div class="timerbuttons"><button class="btn" id="swStart">St
+ <div class="card"><div class="cardhead"><h3>🍅 Focus timer</h3><span class="pill" id="pomoCount">Deep work</span></div><div class="timerbox"><div class="timerlabel" id="pomoMode">FOCUS SESSION</div><div class="bigtime" id="pomoDisplay">25:00</div><div class="progress"><div id="pomoBar" style="width:100%"></div></div><div class="timerbuttons" style="margin-top:20px"><button class="btn" id="pomoStart">Start focus</button><button class="btn secondary" id="pomoReset">Reset</button></div><div class="modebar"><button class="on" data-pomo="25">Focus 25m</button><button data-pomo="5">Short break</button><button data-pomo="15">Long break</button></div></div></div>
+ <div class="card"><div class="cardhead"><h3>⏱️ Stopwatch</h3><span class="pill">Track time</span></div><div class="bigtime" id="swDisplay" style="text-align:center">00:00.00</div><div class="timerbuttons"><button class="btn" id="swStart">Start</button><button class="btn secondary" id="swLap">Lap</button><button class="btn secondary" id="swReset">Reset</button></div><div id="swLaps" style="margin-top:13px"></div></div>
+ <div class="card"><div class="cardhead"><h3>⏳ Countdown</h3></div><div class="inputrow"><div class="field"><label for="cdMinutes">MINUTES</label><input class="input" id="cdMinutes" type="number" min="0" max="999" value="5"></div><div class="field"><label for="cdSeconds">SECONDS</label><input class="input" id="cdSeconds" type="number" min="0" max="59" value="0"></div></div><div class="bigtime" id="cdDisplay" style="text-align:center">05:00</div><div
